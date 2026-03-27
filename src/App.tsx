@@ -21,6 +21,9 @@ import {
   signInWithPopup, 
   signOut, 
   onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
   collection,
   doc,
   setDoc,
@@ -123,7 +126,40 @@ const ErrorBoundary = ({ children }: { children: React.ReactNode }) => {
 };
 
 const Login = () => {
-  const handleLogin = async () => {
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      if (isSignUp) {
+        const result = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(result.user, { displayName });
+        const userRef = doc(db, 'users', result.user.uid);
+        await setDoc(userRef, {
+          uid: result.user.uid,
+          displayName: displayName || 'Anonymous',
+          email: email,
+          photoURL: '',
+        });
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+      }
+    } catch (err: any) {
+      console.error('Auth error:', err);
+      setError(err.message || 'An error occurred during authentication.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
@@ -134,8 +170,9 @@ const Login = () => {
         email: user.email || '',
         photoURL: user.photoURL || '',
       }, { merge: true });
-    } catch (error) {
-      console.error('Login error:', error);
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.message || 'An error occurred during Google login.');
     }
   };
 
@@ -150,14 +187,69 @@ const Login = () => {
           <DollarSign className="text-white w-8 h-8" />
         </div>
         <h1 className="text-3xl font-semibold tracking-tight mb-2">SplitWise Clone</h1>
-        <p className="text-gray-500 mb-8">Split expenses with friends, easily and fairly.</p>
+        <p className="text-gray-500 mb-8">
+          {isSignUp ? 'Create an account to get started.' : 'Log in to your account.'}
+        </p>
+
+        <form onSubmit={handleAuth} className="space-y-4 mb-6">
+          {isSignUp && (
+            <input 
+              type="text" 
+              placeholder="Your Name"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-black transition-all"
+              required
+            />
+          )}
+          <input 
+            type="email" 
+            placeholder="Email Address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-black transition-all"
+            required
+          />
+          <input 
+            type="password" 
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-black transition-all"
+            required
+          />
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+          <button 
+            type="submit"
+            disabled={loading}
+            className="w-full py-4 bg-black text-white rounded-2xl font-medium hover:bg-gray-900 transition-colors disabled:opacity-50"
+          >
+            {loading ? 'Processing...' : (isSignUp ? 'Sign Up' : 'Log In')}
+          </button>
+        </form>
+
+        <div className="relative mb-6">
+          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100"></div></div>
+          <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-gray-400">Or continue with</span></div>
+        </div>
+
         <button 
-          onClick={handleLogin}
-          className="w-full py-4 bg-black text-white rounded-2xl font-medium flex items-center justify-center gap-3 hover:bg-gray-900 transition-colors"
+          onClick={handleGoogleLogin}
+          className="w-full py-4 bg-white border border-gray-100 text-gray-700 rounded-2xl font-medium flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors mb-6"
         >
           <img src="https://www.google.com/favicon.ico" className="w-5 h-5" alt="Google" />
-          Continue with Google
+          Google
         </button>
+
+        <p className="text-sm text-gray-500">
+          {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+          <button 
+            onClick={() => setIsSignUp(!isSignUp)}
+            className="text-black font-semibold hover:underline"
+          >
+            {isSignUp ? 'Log In' : 'Sign Up'}
+          </button>
+        </p>
       </motion.div>
     </div>
   );
