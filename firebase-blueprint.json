@@ -1,0 +1,51 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user of the application.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The unique ID of the user." },
+        "displayName": { "type": "string", "description": "The display name of the user." },
+        "email": { "type": "string", "format": "email", "description": "The email address of the user." },
+        "photoURL": { "type": "string", "format": "uri", "description": "The URL of the user's profile picture." }
+      },
+      "required": ["uid", "displayName", "email"]
+    },
+    "Group": {
+      "title": "Group",
+      "description": "A group of people splitting expenses.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "The unique ID of the group." },
+        "name": { "type": "string", "description": "The name of the group." },
+        "creatorId": { "type": "string", "description": "The UID of the user who created the group." },
+        "memberIds": { "type": "array", "items": { "type": "string" }, "description": "The UIDs of the members in the group." },
+        "memberNames": { "type": "object", "description": "Map of UID to custom display name within the group." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the group was created." }
+      },
+      "required": ["id", "name", "creatorId", "memberIds", "createdAt"]
+    },
+    "Expense": {
+      "title": "Expense",
+      "description": "An expense added to a group.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "The unique ID of the expense." },
+        "groupId": { "type": "string", "description": "The ID of the group this expense belongs to." },
+        "amount": { "type": "number", "description": "The amount of the expense." },
+        "description": { "type": "string", "description": "What the expense was for." },
+        "date": { "type": "string", "format": "date-time", "description": "When the expense occurred." },
+        "payerId": { "type": "string", "description": "The UID of the user who paid." },
+        "splitWithIds": { "type": "array", "items": { "type": "string" }, "description": "The UIDs of the users splitting the expense." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the expense was added." }
+      },
+      "required": ["id", "groupId", "amount", "description", "date", "payerId", "splitWithIds", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": { "schema": "User", "description": "User profiles." },
+    "/groups/{groupId}": { "schema": "Group", "description": "Group information." },
+    "/groups/{groupId}/expenses/{expenseId}": { "schema": "Expense", "description": "Expenses within a group." }
+  }
+}

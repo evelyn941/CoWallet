@@ -1,0 +1,5 @@
+{
+  "name": "SplitWise Clone",
+  "description": "A web app to split expenses among groups of people, with real-time updates and summaries.",
+  "requestFramePermissions": []
+}
