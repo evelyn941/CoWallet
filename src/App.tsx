@@ -275,7 +275,7 @@ const Modal = ({ isOpen, onClose, title, children }: { isOpen: boolean, onClose:
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="p-8">
+        <div className="p-6 sm:p-8">
           {children}
         </div>
       </motion.div>
@@ -311,7 +311,7 @@ const ConfirmModal = ({
         exit={{ opacity: 0, scale: 0.95 }}
         className="bg-white rounded-[32px] w-full max-w-sm overflow-hidden shadow-2xl"
       >
-        <div className="p-8 text-center">
+        <div className="p-6 sm:p-8 text-center">
           <div className={`w-16 h-16 ${isDestructive ? 'bg-red-50 text-red-500' : 'bg-blue-50 text-blue-500'} rounded-full flex items-center justify-center mx-auto mb-6`}>
             {isDestructive ? <Trash2 className="w-8 h-8" /> : <AlertCircle className="w-8 h-8" />}
           </div>
@@ -362,7 +362,7 @@ const NotificationModal = ({
         exit={{ opacity: 0, scale: 0.95 }}
         className="bg-white rounded-[32px] w-full max-w-sm overflow-hidden shadow-2xl"
       >
-        <div className="p-8 text-center">
+        <div className="p-6 sm:p-8 text-center">
           <div className={`w-16 h-16 ${type === 'error' ? 'bg-red-50 text-red-500' : type === 'success' ? 'bg-green-50 text-green-500' : 'bg-blue-50 text-blue-500'} rounded-full flex items-center justify-center mx-auto mb-6`}>
             {type === 'error' ? <AlertCircle className="w-8 h-8" /> : type === 'success' ? <Users className="w-8 h-8" /> : <AlertCircle className="w-8 h-8" />}
           </div>
@@ -489,12 +489,12 @@ export default function App() {
                 exit={{ opacity: 0, x: 20 }}
               >
                 <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-3xl font-semibold tracking-tight">My Groups</h2>
+                  <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight">My Groups</h2>
                   <button 
                     onClick={() => setIsCreateGroupModalOpen(true)}
-                    className="px-6 py-3 bg-black text-white rounded-2xl font-medium flex items-center gap-2 hover:bg-gray-900 transition-colors shadow-sm"
+                    className="px-4 sm:px-6 py-2.5 sm:py-3 bg-black text-white rounded-2xl font-medium flex items-center gap-2 hover:bg-gray-900 transition-colors shadow-sm text-sm sm:text-base"
                   >
-                    <Plus className="w-5 h-5" />
+                    <Plus className="w-4 h-4 sm:w-5 h-5" />
                     New Group
                   </button>
                 </div>
@@ -514,16 +514,18 @@ export default function App() {
                         key={group.id}
                         whileHover={{ y: -4 }}
                         onClick={() => setSelectedGroupId(group.id)}
-                        className="bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm cursor-pointer hover:shadow-md transition-all group"
+                        className="bg-white p-6 sm:p-8 rounded-[32px] border border-gray-100 shadow-sm cursor-pointer hover:shadow-md transition-all group"
                       >
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center group-hover:bg-black transition-colors">
-                            <Users className="text-gray-400 group-hover:text-white w-6 h-6" />
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-50 rounded-xl flex items-center justify-center group-hover:bg-black transition-colors flex-shrink-0">
+                            <Users className="text-gray-400 group-hover:text-white w-5 h-5 sm:w-6 sm:h-6" />
                           </div>
-                          <ChevronRight className="text-gray-300 group-hover:text-black transition-colors" />
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-lg sm:text-xl font-semibold truncate">{group.name}</h3>
+                            <p className="text-xs sm:text-sm text-gray-500">{group.memberIds.length} members</p>
+                          </div>
+                          <ChevronRight className="text-gray-300 group-hover:text-black transition-colors flex-shrink-0" />
                         </div>
-                        <h3 className="text-xl font-semibold mb-1">{group.name}</h3>
-                        <p className="text-sm text-gray-500">{group.memberIds.length} members</p>
                       </motion.div>
                     ))}
                   </div>
@@ -911,7 +913,7 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
           </button>
           <div>
             <div className="flex items-center gap-2 group/title">
-              <h2 className="text-3xl font-semibold tracking-tight">{group.name}</h2>
+              <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight">{group.name}</h2>
               <button 
                 onClick={() => {
                   const name = prompt('Rename group:', group.name);
@@ -924,10 +926,10 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
                 <Edit2 className="w-4 h-4 text-gray-400" />
               </button>
             </div>
-            <p className="text-sm text-gray-500">Created by {group.memberNames?.[group.creatorId] || 'Unknown'}</p>
+            <p className="text-xs sm:text-sm text-gray-500">Created by {group.memberNames?.[group.creatorId] || 'Unknown'}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-center sm:justify-end gap-3">
           <button 
             onClick={() => {
               setEditingExpenseId(null);
@@ -941,7 +943,7 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
               });
               setIsExpenseModalOpen(true);
             }}
-            className="px-6 py-3 bg-black text-white rounded-2xl font-medium flex items-center gap-2 hover:bg-gray-900 transition-colors shadow-sm"
+            className="w-full sm:w-auto px-6 py-3 bg-black text-white rounded-2xl font-medium flex items-center justify-center gap-2 hover:bg-gray-900 transition-colors shadow-sm"
           >
             <Plus className="w-5 h-5" />
             Add Expense
@@ -950,93 +952,9 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        <div className="lg:col-span-2 space-y-10">
-          <section>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-              <h3 className="text-xl font-semibold">Expenses</h3>
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="relative flex-1 sm:flex-initial">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input 
-                    type="text"
-                    placeholder="Search expenses..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 pr-4 py-2 bg-white border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-black transition-all w-full"
-                  />
-                </div>
-                <div className="flex items-center gap-2 bg-white border border-gray-100 rounded-xl px-3 py-2">
-                  <Filter className="w-4 h-4 text-gray-400" />
-                  <select 
-                    value={sortField}
-                    onChange={(e) => setSortField(e.target.value as 'date' | 'amount')}
-                    className="bg-transparent text-sm border-none focus:ring-0 p-0 pr-6 appearance-none cursor-pointer"
-                  >
-                    <option value="date">Date</option>
-                    <option value="amount">Amount</option>
-                  </select>
-                  <button 
-                    onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-                    className="p-1 hover:bg-gray-50 rounded transition-colors"
-                  >
-                    <ArrowUpDown className={`w-4 h-4 ${sortOrder === 'asc' ? 'text-black' : 'text-gray-400'}`} />
-                  </button>
-                </div>
-              </div>
-            </div>
-            {filteredAndSortedExpenses.length === 0 ? (
-              <div className="bg-white rounded-[32px] p-12 text-center border border-gray-100">
-                <p className="text-gray-400">{searchQuery ? 'No matching expenses found.' : 'No expenses yet.'}</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredAndSortedExpenses.map(exp => (
-                  <div key={exp.id} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between group/item">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center">
-                        <DollarSign className="w-6 h-6 text-gray-400" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold">{exp.description}</h4>
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
-                          <span>Paid by {group.memberNames?.[exp.payerId] || 'Unknown'}</span>
-                          <span>•</span>
-                          <span>{exp.date.toDate().toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-6">
-                      <div className="text-right">
-                        <div className="text-lg font-bold">
-                          <span className="text-[10px] text-gray-400 mr-1 font-normal uppercase tracking-wider">{exp.currency || group.currency}</span>
-                          {getCurrencySymbol(exp.currency || group.currency)}{exp.amount.toFixed(2)}
-                        </div>
-                        <div className="text-[10px] text-gray-400 uppercase tracking-wider">Total</div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button 
-                          onClick={() => handleEditExpense(exp)}
-                          className="p-2 text-gray-300 hover:text-black lg:opacity-0 lg:group-hover/item:opacity-100 transition-all"
-                        >
-                          <Edit2 className="w-5 h-5" />
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteExpense(exp.id)}
-                          className="p-2 text-gray-300 hover:text-red-500 transition-all"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        </div>
-
-        <div className="space-y-10">
-          <section className="sticky top-32 space-y-10">
+        {/* Summary & Members - Top on mobile, Right on desktop */}
+        <div className="lg:col-span-1 space-y-10 order-first lg:order-last">
+          <section className="lg:sticky lg:top-32 space-y-10">
             <div>
               <h3 className="text-xl font-semibold mb-6">Summary</h3>
               {debts.length === 0 ? (
@@ -1167,6 +1085,94 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
             )}
           </section>
         </div>
+
+        {/* Expenses - Bottom on mobile, Left on desktop */}
+        <div className="lg:col-span-2 space-y-10 lg:order-first">
+          <section>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <h3 className="text-xl font-semibold">Expenses</h3>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="relative flex-1 sm:flex-initial">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input 
+                    type="text"
+                    placeholder="Search expenses..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9 pr-4 py-2 bg-white border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-black transition-all w-full"
+                  />
+                </div>
+                <div className="flex items-center gap-2 bg-white border border-gray-100 rounded-xl px-3 py-2">
+                  <Filter className="w-4 h-4 text-gray-400" />
+                  <select 
+                    value={sortField}
+                    onChange={(e) => setSortField(e.target.value as 'date' | 'amount')}
+                    className="bg-transparent text-sm border-none focus:ring-0 p-0 pr-6 appearance-none cursor-pointer"
+                  >
+                    <option value="date">Date</option>
+                    <option value="amount">Amount</option>
+                  </select>
+                  <button 
+                    onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                    className="p-1 hover:bg-gray-50 rounded transition-colors"
+                  >
+                    <ArrowUpDown className={`w-4 h-4 ${sortOrder === 'asc' ? 'text-black' : 'text-gray-400'}`} />
+                  </button>
+                </div>
+              </div>
+            </div>
+            {filteredAndSortedExpenses.length === 0 ? (
+              <div className="bg-white rounded-[32px] p-12 text-center border border-gray-100">
+                <p className="text-gray-400">{searchQuery ? 'No matching expenses found.' : 'No expenses yet.'}</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredAndSortedExpenses.map(exp => (
+                  <div key={exp.id} className="bg-white p-4 sm:p-6 rounded-3xl border border-gray-100 shadow-sm group/item">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <h4 className="font-semibold text-gray-900 truncate sm:whitespace-normal">{exp.description}</h4>
+                          <div className="text-right flex-shrink-0">
+                            <div className="text-base sm:text-lg font-bold text-gray-900">
+                              <span className="text-[8px] sm:text-[10px] text-gray-400 mr-1 font-normal uppercase tracking-wider">{exp.currency || group.currency}</span>
+                              {getCurrencySymbol(exp.currency || group.currency)}{exp.amount.toFixed(2)}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between mt-1">
+                          <div className="text-[10px] sm:text-xs text-gray-500 truncate pr-4">
+                            Paid by {group.memberNames?.[exp.payerId] || 'Unknown'}
+                          </div>
+                          <div className="text-[10px] sm:text-xs text-gray-400 whitespace-nowrap">
+                            {exp.date.toDate().toLocaleDateString()}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 sm:gap-2 ml-2 sm:ml-4">
+                        <button 
+                          onClick={() => handleEditExpense(exp)}
+                          className="p-1.5 sm:p-2 text-gray-300 hover:text-black lg:opacity-0 lg:group-hover/item:opacity-100 transition-all"
+                        >
+                          <Edit2 className="w-4 h-4 sm:w-5 h-5" />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteExpense(exp.id)}
+                          className="p-1.5 sm:p-2 text-gray-300 hover:text-red-500 transition-all"
+                        >
+                          <Trash2 className="w-4 h-4 sm:w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
       </div>
 
       <Modal isOpen={isExpenseModalOpen} onClose={() => setIsExpenseModalOpen(false)} title={editingExpenseId ? "Edit Expense" : "Add Expense"}>
@@ -1182,7 +1188,7 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
               required
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
               <div className="relative">
@@ -1234,7 +1240,7 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Split With</label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {group.memberIds.map(id => (
                 <label key={id} className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
                   <input 
