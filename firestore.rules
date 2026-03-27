@@ -51,15 +51,19 @@ service cloud.firestore {
     function isAdmin() {
       return isAuthenticated() &&
         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-          (request.auth.token.email == "hyq941@gmail.com" && request.auth.token.email_verified == true));
+          (request.auth.token.email in ['hyq941@gmail.com', 'hyq9941@163.com']));
     }
 
     function isGroupMember(groupId) {
-      return isAuthenticated() && request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.memberIds;
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/groups/$(groupId)) &&
+        request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.memberIds;
     }
 
     function isGroupCreator(groupId) {
-      return isAuthenticated() && request.auth.uid == get(/databases/$(database)/documents/groups/$(groupId)).data.creatorId;
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/groups/$(groupId)) &&
+        request.auth.uid == get(/databases/$(database)/documents/groups/$(groupId)).data.creatorId;
     }
 
     function isValidUser(data) {

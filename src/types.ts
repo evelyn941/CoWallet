@@ -10,7 +10,8 @@ export interface Group {
   name: string;
   creatorId: string;
   memberIds: string[];
-  memberNames?: Record<string, string>; // UID -> Custom Name
+  memberNames: Record<string, string>; // UID -> Custom Name
+  currency?: string; // Currency code (e.g., 'USD')
   createdAt: any; // Firestore Timestamp
 }
 
