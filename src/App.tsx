@@ -624,6 +624,7 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
   const [expenseForm, setExpenseForm] = useState({
     description: '',
     amount: '',
+    currency: '',
     date: new Date().toISOString().split('T')[0],
     payerId: user.uid,
     splitWithIds: [] as string[]
@@ -674,6 +675,7 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
         id: expenseRef.id,
         groupId,
         amount: parseFloat(expenseForm.amount),
+        currency: expenseForm.currency || group.currency || 'USD',
         description: expenseForm.description,
         date: Timestamp.fromDate(new Date(expenseForm.date)),
         payerId: expenseForm.payerId,
@@ -692,6 +694,7 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
       setExpenseForm({
         description: '',
         amount: '',
+        currency: group.currency || 'USD',
         date: new Date().toISOString().split('T')[0],
         payerId: user.uid,
         splitWithIds: group.memberIds
@@ -706,6 +709,7 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
     setExpenseForm({
       description: expense.description,
       amount: expense.amount.toString(),
+      currency: expense.currency || group?.currency || 'USD',
       date: expense.date.toDate().toISOString().split('T')[0],
       payerId: expense.payerId,
       splitWithIds: expense.splitWithIds
@@ -930,6 +934,7 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
               setExpenseForm({
                 description: '',
                 amount: '',
+                currency: group.currency || 'USD',
                 date: new Date().toISOString().split('T')[0],
                 payerId: user.uid,
                 splitWithIds: group.memberIds
@@ -1002,7 +1007,10 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
                     </div>
                     <div className="flex items-center gap-6">
                       <div className="text-right">
-                        <div className="text-lg font-bold">{currencySymbol}{exp.amount.toFixed(2)}</div>
+                        <div className="text-lg font-bold">
+                          <span className="text-[10px] text-gray-400 mr-1 font-normal uppercase tracking-wider">{exp.currency || group.currency}</span>
+                          {getCurrencySymbol(exp.currency || group.currency)}{exp.amount.toFixed(2)}
+                        </div>
                         <div className="text-[10px] text-gray-400 uppercase tracking-wider">Total</div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -1176,16 +1184,30 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Amount ({currencySymbol})</label>
-              <input 
-                type="number" 
-                step="0.01"
-                value={expenseForm.amount}
-                onChange={(e) => setExpenseForm(prev => ({ ...prev, amount: e.target.value }))}
-                placeholder="0.00"
-                className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-black transition-all"
-                required
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  <select
+                    value={expenseForm.currency}
+                    onChange={(e) => setExpenseForm(prev => ({ ...prev, currency: e.target.value }))}
+                    className="bg-transparent border-none p-0 text-sm font-bold focus:ring-0 cursor-pointer appearance-none"
+                    style={{ width: 'auto' }}
+                  >
+                    {CURRENCIES.map(c => (
+                      <option key={c.code} value={c.code}>{c.code} ({c.symbol})</option>
+                    ))}
+                  </select>
+                </div>
+                <input 
+                  type="number" 
+                  step="0.01"
+                  value={expenseForm.amount}
+                  onChange={(e) => setExpenseForm(prev => ({ ...prev, amount: e.target.value }))}
+                  placeholder="0.00"
+                  className="w-full pl-20 pr-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-black transition-all"
+                  required
+                />
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>

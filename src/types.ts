@@ -19,6 +19,7 @@ export interface Expense {
   id: string;
   groupId: string;
   amount: number;
+  currency?: string; // Individual expense currency
   description: string;
   date: any; // Firestore Timestamp
   payerId: string;
