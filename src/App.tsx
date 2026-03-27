@@ -15,7 +15,8 @@ import {
   X,
   Search,
   ArrowUpDown,
-  Filter
+  Filter,
+  Globe
 } from 'lucide-react';
 import { 
   auth, 
@@ -421,7 +422,7 @@ export default function App() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const groupsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Group));
       setGroups(groupsData);
-    }, (error) => handleFirestoreError(error, OperationType.LIST, 'groups'));
+    }, (error: any) => handleFirestoreError(error, OperationType.LIST, 'groups'));
     return () => unsubscribe();
   }, [user]);
 
@@ -591,6 +592,7 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [isExchangeModalOpen, setIsExchangeModalOpen] = useState(false);
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   
   const [confirmState, setConfirmState] = useState<{
@@ -634,6 +636,40 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
 
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [renameMember, setRenameMember] = useState({ uid: '', name: '' });
+  const [exchangeRatesForm, setExchangeRatesForm] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (isExchangeModalOpen && group) {
+      const initialRates: Record<string, string> = {};
+      const usedCurrencies = new Set<string>(expenses.map(e => e.currency).filter((c): c is string => !!c && c !== group.currency));
+      if (group.exchangeRates) {
+        Object.keys(group.exchangeRates).forEach(c => usedCurrencies.add(c));
+      }
+      
+      usedCurrencies.forEach((c: string) => {
+        initialRates[c] = group.exchangeRates?.[c]?.toString() || '1';
+      });
+      setExchangeRatesForm(initialRates);
+    }
+  }, [isExchangeModalOpen, group, expenses]);
+
+  const handleSaveExchangeRates = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!group) return;
+    const rates: Record<string, number> = {};
+    Object.entries(exchangeRatesForm).forEach(([code, rate]) => {
+      rates[code] = parseFloat(rate as string) || 1;
+    });
+    
+    try {
+      await updateDoc(doc(db, 'groups', groupId), {
+        exchangeRates: rates
+      });
+      setIsExchangeModalOpen(false);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `groups/${groupId}`);
+    }
+  };
 
   useEffect(() => {
     const groupRef = doc(db, 'groups', groupId);
@@ -645,7 +681,7 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
       } else {
         onBack();
       }
-    }, (error) => {
+    }, (error: any) => {
       if (error.code === 'permission-denied') {
         onBack();
       } else {
@@ -660,7 +696,7 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const expensesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Expense));
       setExpenses(expensesData);
-    }, (error) => handleFirestoreError(error, OperationType.LIST, `groups/${groupId}/expenses`));
+    }, (error: any) => handleFirestoreError(error, OperationType.LIST, `groups/${groupId}/expenses`));
     return () => unsubscribe();
   }, [groupId]);
 
@@ -846,8 +882,10 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
     group.memberIds.forEach(id => balances[id] = 0);
 
     expenses.forEach(exp => {
-      const perPerson = exp.amount / exp.splitWithIds.length;
-      balances[exp.payerId] += exp.amount;
+      const rate = (exp.currency === group.currency) ? 1 : (group.exchangeRates?.[exp.currency || ''] || 1);
+      const amountInDefault = exp.amount * rate;
+      const perPerson = amountInDefault / exp.splitWithIds.length;
+      balances[exp.payerId] += amountInDefault;
       exp.splitWithIds.forEach(id => {
         balances[id] -= perPerson;
       });
@@ -930,6 +968,13 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
           </div>
         </div>
         <div className="flex items-center justify-center sm:justify-end gap-3">
+          <button 
+            onClick={() => setIsExchangeModalOpen(true)}
+            className="p-3 bg-white border border-gray-100 text-gray-500 rounded-2xl hover:bg-gray-50 transition-colors shadow-sm"
+            title="Currency Exchange Rates"
+          >
+            <Globe className="w-5 h-5" />
+          </button>
           <button 
             onClick={() => {
               setEditingExpenseId(null);
@@ -1136,8 +1181,16 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
                         <div className="flex items-start justify-between gap-2">
                           <h4 className="font-semibold text-gray-900 truncate sm:whitespace-normal">{exp.description}</h4>
                           <div className="text-right flex-shrink-0">
-                            <div className="text-base sm:text-lg font-bold text-gray-900">
+                            <div className="text-base sm:text-lg font-bold text-gray-900 flex items-center justify-end gap-1.5">
                               {getCurrencySymbol(exp.currency || group.currency)}{exp.amount.toFixed(2)}
+                              {exp.currency && exp.currency !== group.currency && (
+                                <div className="group/rate relative cursor-help">
+                                  <Globe className="w-3 h-3 text-gray-300 hover:text-gray-500 transition-colors" />
+                                  <div className="absolute bottom-full right-0 mb-2 hidden group-hover/rate:block bg-black text-white text-[10px] px-2 py-1 rounded whitespace-nowrap z-10 shadow-xl font-medium">
+                                    1 {exp.currency} = {group.exchangeRates?.[exp.currency] || 1} {group.currency}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1282,6 +1335,80 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
         message={notificationState.message}
         type={notificationState.type}
       />
+
+      <Modal isOpen={isExchangeModalOpen} onClose={() => setIsExchangeModalOpen(false)} title="Exchange Rates">
+        <form onSubmit={handleSaveExchangeRates} className="space-y-6">
+          <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 mb-6">
+            <p className="text-xs text-blue-700 leading-relaxed">
+              Set how much 1 unit of each currency is worth in your group's default currency ({group.currency}).
+              <br />
+              <span className="font-bold">Example:</span> If 1 EUR = 1.1 USD, enter 1.1 for EUR.
+            </p>
+          </div>
+          
+          <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
+            {Object.keys(exchangeRatesForm).length === 0 ? (
+              <p className="text-center py-8 text-gray-400 italic text-sm">No other currencies used yet.</p>
+            ) : (
+              Object.entries(exchangeRatesForm).map(([code, rate]) => (
+                <div key={code} className="flex items-center gap-4 group/rate">
+                  <div className="w-16 font-bold text-gray-700">{code}</div>
+                  <div className="flex-1 relative">
+                    <input 
+                      type="number" 
+                      step="0.0001"
+                      value={rate}
+                      onChange={(e) => setExchangeRatesForm(prev => ({ ...prev, [code]: e.target.value }))}
+                      className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-black transition-all text-sm"
+                      required
+                    />
+                  </div>
+                  <div className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">per 1 {code}</div>
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      const newRates = { ...exchangeRatesForm };
+                      delete newRates[code];
+                      setExchangeRatesForm(newRates);
+                    }}
+                    className="p-2 text-gray-300 hover:text-red-500 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="pt-6 border-t border-gray-100">
+            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Add Currency Rate</label>
+            <div className="flex gap-2">
+              <select 
+                className="flex-1 px-4 py-3 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-black transition-all appearance-none cursor-pointer"
+                onChange={(e) => {
+                  if (e.target.value && !exchangeRatesForm[e.target.value]) {
+                    setExchangeRatesForm(prev => ({ ...prev, [e.target.value]: '1' }));
+                  }
+                  e.target.value = "";
+                }}
+                value=""
+              >
+                <option value="" disabled>Select currency to add...</option>
+                {CURRENCIES.filter(c => c.code !== group.currency && !exchangeRatesForm[c.code]).map(c => (
+                  <option key={c.code} value={c.code}>{c.code} - {c.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <button 
+            type="submit"
+            className="w-full py-4 bg-black text-white rounded-2xl font-medium hover:bg-gray-900 transition-colors shadow-sm"
+          >
+            Save Rates
+          </button>
+        </form>
+      </Modal>
 
       <Modal isOpen={isMemberModalOpen} onClose={() => setIsMemberModalOpen(false)} title="Add Member">
         <form onSubmit={handleAddMember} className="space-y-6">

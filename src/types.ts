@@ -12,6 +12,7 @@ export interface Group {
   memberIds: string[];
   memberNames: Record<string, string>; // UID -> Custom Name
   currency?: string; // Currency code (e.g., 'USD')
+  exchangeRates?: Record<string, number>; // Currency Code -> Rate relative to default currency
   createdAt: any; // Firestore Timestamp
 }
 
