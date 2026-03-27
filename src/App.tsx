@@ -464,9 +464,9 @@ export default function App() {
               <span className="text-xl font-semibold tracking-tight">CoWallet</span>
             </div>
             <div className="flex items-center gap-4">
-              <div className="hidden sm:flex flex-col items-end">
-                <span className="text-sm font-medium">{user.displayName}</span>
-                <span className="text-xs text-gray-500">{user.email}</span>
+              <div className="flex flex-col items-end">
+                <span className="text-[11px] sm:text-sm font-medium leading-none mb-1">{user.displayName}</span>
+                <span className="text-[9px] sm:text-xs text-gray-500 leading-none">{user.email}</span>
               </div>
               <button 
                 onClick={() => signOut(auth)}
@@ -915,7 +915,7 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
                     updateDoc(doc(db, 'groups', groupId), { name: name.trim() });
                   }
                 }}
-                className="p-1 opacity-0 group-hover/title:opacity-100 transition-opacity"
+                className="p-1 lg:opacity-0 lg:group-hover/title:opacity-100 transition-opacity"
               >
                 <Edit2 className="w-4 h-4 text-gray-400" />
               </button>
@@ -1008,7 +1008,7 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
                       <div className="flex items-center gap-2">
                         <button 
                           onClick={() => handleEditExpense(exp)}
-                          className="p-2 text-gray-300 hover:text-black opacity-0 group-hover/item:opacity-100 transition-all"
+                          className="p-2 text-gray-300 hover:text-black lg:opacity-0 lg:group-hover/item:opacity-100 transition-all"
                         >
                           <Edit2 className="w-5 h-5" />
                         </button>
@@ -1125,7 +1125,7 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
                         {id === group.creatorId && <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded uppercase font-bold text-gray-500">Creator</span>}
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 opacity-0 group-hover/member:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-1 lg:opacity-0 lg:group-hover/member:opacity-100 transition-opacity">
                       <button 
                         onClick={() => {
                           setRenameMember({ uid: id, name: group.memberNames?.[id] || '' });
