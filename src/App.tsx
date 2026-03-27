@@ -926,7 +926,7 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
                 <Edit2 className="w-4 h-4 text-gray-400" />
               </button>
             </div>
-            <p className="text-xs sm:text-sm text-gray-500">Created by {group.memberNames?.[group.creatorId] || 'Unknown'}</p>
+            <p className="text-xs sm:text-sm text-gray-500">Created by {group.memberNames?.[group.creatorId] || 'Unknown'} • {group.currency}</p>
           </div>
         </div>
         <div className="flex items-center justify-center sm:justify-end gap-3">
@@ -1073,16 +1073,15 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
                   </div>
                 ))}
               </div>
+              {group.creatorId === user.uid && (
+                <button 
+                  onClick={handleDismissGroup}
+                  className="w-full mt-4 py-3 text-red-500 hover:bg-red-50 rounded-2xl transition-colors text-xs font-medium border border-transparent hover:border-red-100"
+                >
+                  Dismiss Group
+                </button>
+              )}
             </section>
-
-            {group.creatorId === user.uid && (
-              <button 
-                onClick={handleDismissGroup}
-                className="w-full py-4 text-red-500 hover:bg-red-50 rounded-2xl transition-colors text-sm font-medium border border-transparent hover:border-red-100"
-              >
-                Dismiss Group
-              </button>
-            )}
           </section>
         </div>
 
@@ -1138,7 +1137,6 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
                           <h4 className="font-semibold text-gray-900 truncate sm:whitespace-normal">{exp.description}</h4>
                           <div className="text-right flex-shrink-0">
                             <div className="text-base sm:text-lg font-bold text-gray-900">
-                              <span className="text-[8px] sm:text-[10px] text-gray-400 mr-1 font-normal uppercase tracking-wider">{exp.currency || group.currency}</span>
                               {getCurrencySymbol(exp.currency || group.currency)}{exp.amount.toFixed(2)}
                             </div>
                           </div>
@@ -1188,7 +1186,7 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
               required
             />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
               <div className="relative">
@@ -1210,7 +1208,7 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
                   value={expenseForm.amount}
                   onChange={(e) => setExpenseForm(prev => ({ ...prev, amount: e.target.value }))}
                   placeholder="0.00"
-                  className="w-full pl-20 pr-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-black transition-all"
+                  className="w-full pl-20 pr-5 h-[56px] bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-black transition-all"
                   required
                 />
               </div>
@@ -1221,7 +1219,7 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
                 type="date" 
                 value={expenseForm.date}
                 onChange={(e) => setExpenseForm(prev => ({ ...prev, date: e.target.value }))}
-                className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-black transition-all"
+                className="w-full px-5 h-[56px] bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-black transition-all"
                 required
               />
             </div>
@@ -1240,7 +1238,7 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Split With</label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {group.memberIds.map(id => (
                 <label key={id} className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
                   <input 
