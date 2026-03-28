@@ -1,20 +1,13 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# CoWallet 🌍💸
 
-# Run and deploy your AI Studio app
+**Travel the world, skip the math.**
 
-This contains everything you need to run your app locally.
+CoWallet is a lightweight web application designed for friends who love to travel but hate the administrative burden of "who owes what." Whether you're buying street food in Tokyo, booking a villa in Tuscany, or paying for a taxi in New York, CoWallet handles the math for you.
 
-View your app in AI Studio: https://ai.studio/apps/4961f9d9-c58a-4a9b-8aac-18fee5866593
+---
 
-## Run Locally
+## ✨ Key Features
 
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+- **Hassle-Free Splitting:** Quickly add expenses and divide them among friends in seconds. No more manual calculations.
+- **Global Currency Support:** Supports a wide range of international currencies. Simply enter the amount in the local currency you used.
+- **Conversion Calculation:** Add expenses in multiple different currencies (e.g., JPY, EUR, and USD) and generate a final summary in a **single chosen currency**.
