@@ -548,11 +548,11 @@ export default function App() {
                 className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-2xl transition-colors"
                 onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
               >
-                <UserAvatar name={user.displayName} />
-                <div className="hidden sm:flex flex-col items-start">
-                  <span className="text-sm font-medium leading-none mb-1">{user.displayName}</span>
-                  <span className="text-xs text-gray-500 leading-none">{user.email}</span>
+                <div className="flex flex-col items-end text-right">
+                  <span className="text-xs sm:text-sm font-medium leading-none mb-1">{user.displayName}</span>
+                  <span className="text-[10px] sm:text-xs text-gray-500 leading-none">{user.email}</span>
                 </div>
+                <UserAvatar name={user.displayName} />
                 <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
               </div>
 
