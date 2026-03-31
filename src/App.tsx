@@ -16,7 +16,9 @@ import {
   Search,
   ArrowUpDown,
   Filter,
-  Globe
+  Globe,
+  Key,
+  ChevronDown
 } from 'lucide-react';
 import { 
   auth, 
@@ -28,6 +30,10 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   updateProfile,
+  sendPasswordResetEmail,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
   collection,
   doc,
   setDoc,
@@ -132,6 +138,10 @@ const ErrorBoundary = ({ children }: { children: React.ReactNode }) => {
 
 const Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isResetPasswordModalOpen, setIsResetPasswordModalOpen] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetMessage, setResetMessage] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -231,6 +241,17 @@ const Login = () => {
           >
             {loading ? 'Processing...' : (isSignUp ? 'Sign Up' : 'Log In')}
           </button>
+          {!isSignUp && (
+            <div className="text-center mt-2">
+              <button 
+                type="button"
+                onClick={() => setIsResetPasswordModalOpen(true)}
+                className="text-sm text-gray-500 hover:text-black transition-colors"
+              >
+                Forgot password?
+              </button>
+            </div>
+          )}
         </form>
 
         <div className="relative mb-6">
@@ -256,6 +277,57 @@ const Login = () => {
           </button>
         </p>
       </motion.div>
+
+      <Modal 
+        isOpen={isResetPasswordModalOpen} 
+        onClose={() => {
+          setIsResetPasswordModalOpen(false);
+          setResetMessage('');
+          setResetEmail('');
+        }}
+        title="Reset Password"
+      >
+        <form onSubmit={async (e) => {
+          e.preventDefault();
+          setResetLoading(true);
+          setResetMessage('');
+          try {
+            await sendPasswordResetEmail(auth, resetEmail);
+            setResetMessage('Password reset email sent! Please check your inbox.');
+          } catch (err: any) {
+            console.error('Reset error:', err);
+            setResetMessage(err.message || 'An error occurred. Please try again.');
+          } finally {
+            setResetLoading(false);
+          }
+        }}>
+          <p className="text-gray-500 mb-6 text-sm">
+            Enter your email address and we'll send you a link to reset your password.
+          </p>
+          <div className="mb-6">
+            <input 
+              type="email" 
+              placeholder="Email Address"
+              value={resetEmail}
+              onChange={(e) => setResetEmail(e.target.value)}
+              className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-black transition-all"
+              required
+            />
+          </div>
+          {resetMessage && (
+            <p className={`text-sm mb-6 ${resetMessage.includes('sent') ? 'text-green-600' : 'text-red-500'}`}>
+              {resetMessage}
+            </p>
+          )}
+          <button 
+            type="submit"
+            disabled={resetLoading}
+            className="w-full py-4 bg-black text-white rounded-2xl font-medium hover:bg-gray-900 transition-colors disabled:opacity-50"
+          >
+            {resetLoading ? 'Sending...' : 'Send Reset Link'}
+          </button>
+        </form>
+      </Modal>
     </div>
   );
 };
@@ -398,6 +470,13 @@ export default function App() {
   const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupCurrency, setNewGroupCurrency] = useState('USD');
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changePasswordLoading, setChangePasswordLoading] = useState(false);
+  const [changePasswordMessage, setChangePasswordMessage] = useState('');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -464,18 +543,48 @@ export default function App() {
               </div>
               <span className="text-xl font-semibold tracking-tight">CoWallet</span>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex flex-col items-end">
-                <span className="text-[11px] sm:text-sm font-medium leading-none mb-1">{user.displayName}</span>
-                <span className="text-[9px] sm:text-xs text-gray-500 leading-none">{user.email}</span>
-              </div>
-              <button 
-                onClick={() => signOut(auth)}
-                className="p-2 hover:bg-gray-100 rounded-xl transition-colors text-gray-500"
-                title="Logout"
+            <div className="flex items-center gap-4 relative">
+              <div 
+                className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-2xl transition-colors"
+                onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
               >
-                <LogOut className="w-5 h-5" />
-              </button>
+                <UserAvatar name={user.displayName} />
+                <div className="hidden sm:flex flex-col items-start">
+                  <span className="text-sm font-medium leading-none mb-1">{user.displayName}</span>
+                  <span className="text-xs text-gray-500 leading-none">{user.email}</span>
+                </div>
+                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
+              </div>
+
+              <AnimatePresence>
+                {isProfileDropdownOpen && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50"
+                  >
+                    <button 
+                      onClick={() => {
+                        setIsChangePasswordModalOpen(true);
+                        setIsProfileDropdownOpen(false);
+                      }}
+                      className="w-full px-4 py-3 text-left text-sm flex items-center gap-3 hover:bg-gray-50 transition-colors"
+                    >
+                      <Key className="w-4 h-4 text-gray-500" />
+                      Change Password
+                    </button>
+                    <div className="h-px bg-gray-100 my-1 mx-2"></div>
+                    <button 
+                      onClick={() => signOut(auth)}
+                      className="w-full px-4 py-3 text-left text-sm flex items-center gap-3 hover:bg-gray-50 transition-colors text-red-500"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Logout
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </header>
@@ -581,6 +690,109 @@ export default function App() {
             </button>
           </form>
         </Modal>
+
+        <Modal 
+          isOpen={isChangePasswordModalOpen} 
+          onClose={() => {
+            setIsChangePasswordModalOpen(false);
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+            setChangePasswordMessage('');
+          }}
+          title="Change Password"
+        >
+          <form onSubmit={async (e) => {
+            e.preventDefault();
+            if (!auth.currentUser || !auth.currentUser.email) return;
+            
+            if (newPassword !== confirmPassword) {
+              setChangePasswordMessage('New passwords do not match.');
+              return;
+            }
+
+            setChangePasswordLoading(true);
+            setChangePasswordMessage('');
+            try {
+              // Re-authenticate user
+              const credential = EmailAuthProvider.credential(auth.currentUser.email, currentPassword);
+              await reauthenticateWithCredential(auth.currentUser, credential);
+              
+              // Update password
+              await updatePassword(auth.currentUser, newPassword);
+              
+              setChangePasswordMessage('Password updated successfully!');
+              setTimeout(() => {
+                setIsChangePasswordModalOpen(false);
+                setCurrentPassword('');
+                setNewPassword('');
+                setConfirmPassword('');
+                setChangePasswordMessage('');
+              }, 2000);
+            } catch (err: any) {
+              console.error('Change password error:', err);
+              if (err.code === 'auth/wrong-password') {
+                setChangePasswordMessage('Incorrect current password.');
+              } else if (err.code === 'auth/requires-recent-login') {
+                setChangePasswordMessage('Please log out and log back in again to change your password.');
+              } else {
+                setChangePasswordMessage(err.message || 'An error occurred. Please try again.');
+              }
+            } finally {
+              setChangePasswordLoading(false);
+            }
+          }}>
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
+                <input 
+                  type="password" 
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Enter current password"
+                  className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-black transition-all"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+                <input 
+                  type="password" 
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password"
+                  className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-black transition-all"
+                  required
+                  minLength={6}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+                <input 
+                  type="password" 
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                  className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-black transition-all"
+                  required
+                  minLength={6}
+                />
+              </div>
+            </div>
+            {changePasswordMessage && (
+              <p className={`text-sm mb-6 ${changePasswordMessage.includes('successfully') ? 'text-green-600' : 'text-red-500'}`}>
+                {changePasswordMessage}
+              </p>
+            )}
+            <button 
+              type="submit"
+              disabled={changePasswordLoading}
+              className="w-full py-4 bg-black text-white rounded-2xl font-medium hover:bg-gray-900 transition-colors disabled:opacity-50"
+            >
+              {changePasswordLoading ? 'Updating...' : 'Update Password'}
+            </button>
+          </form>
+        </Modal>
       </div>
     </ErrorBoundary>
   );
@@ -592,6 +804,8 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [isRenameGroupModalOpen, setIsRenameGroupModalOpen] = useState(false);
+  const [renameGroupName, setRenameGroupName] = useState('');
   const [isExchangeModalOpen, setIsExchangeModalOpen] = useState(false);
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   
@@ -954,10 +1168,8 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
               <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight">{group.name}</h2>
               <button 
                 onClick={() => {
-                  const name = prompt('Rename group:', group.name);
-                  if (name && name.trim()) {
-                    updateDoc(doc(db, 'groups', groupId), { name: name.trim() });
-                  }
+                  setRenameGroupName(group.name);
+                  setIsRenameGroupModalOpen(true);
                 }}
                 className="p-1 lg:opacity-0 lg:group-hover/title:opacity-100 transition-opacity"
               >
@@ -1441,6 +1653,36 @@ const GroupDetail = ({ groupId, user, onBack }: { groupId: string, user: UserPro
               type="text" 
               value={renameMember.name}
               onChange={(e) => setRenameMember(prev => ({ ...prev, name: e.target.value }))}
+              className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-black transition-all"
+              required
+            />
+          </div>
+          <button 
+            type="submit"
+            className="w-full py-4 bg-black text-white rounded-2xl font-medium hover:bg-gray-900 transition-colors"
+          >
+            Save Changes
+          </button>
+        </form>
+      </Modal>
+
+      <Modal isOpen={isRenameGroupModalOpen} onClose={() => setIsRenameGroupModalOpen(false)} title="Rename Group">
+        <form onSubmit={async (e) => {
+          e.preventDefault();
+          if (!renameGroupName.trim()) return;
+          try {
+            await updateDoc(doc(db, 'groups', groupId), { name: renameGroupName.trim() });
+            setIsRenameGroupModalOpen(false);
+          } catch (error) {
+            handleFirestoreError(error, OperationType.UPDATE, `groups/${groupId}`);
+          }
+        }} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Group Name</label>
+            <input 
+              type="text" 
+              value={renameGroupName}
+              onChange={(e) => setRenameGroupName(e.target.value)}
               className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-black transition-all"
               required
             />
